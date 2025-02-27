@@ -1,0 +1,23 @@
+{
+  "name": "pmsky-bangers",
+  "version": "0.1.0",
+  "description": "labels bangers as determined by pmsky",
+  "main": "dist/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AfternoonSky/bangers-labeler.git"
+  },
+  "keywords": [
+    "atproto-labeler"
+  ],
+  "author": "drewmca.dev",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/AfternoonSky/bangers-labeler/issues"
+  },
+  "homepage": "https://github.com/AfternoonSky/bangers-labeler#readme"
+}
