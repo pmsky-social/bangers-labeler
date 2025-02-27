@@ -19,5 +19,16 @@
   "bugs": {
     "url": "https://github.com/AfternoonSky/bangers-labeler/issues"
   },
-  "homepage": "https://github.com/AfternoonSky/bangers-labeler#readme"
+  "homepage": "https://github.com/AfternoonSky/bangers-labeler#readme",
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.13.5"
+  },
+  "dependencies": {
+    "@skyware/jetstream": "^0.2.2",
+    "@skyware/labeler": "^0.2.0",
+    "better-sqlite3": "^11.8.1",
+    "kysely": "^0.27.5",
+    "pino": "^9.6.0"
+  }
 }
