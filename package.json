@@ -4,6 +4,7 @@
   "description": "labels bangers as determined by pmsky",
   "main": "dist/index.ts",
   "scripts": {
+    "lexgen": "lex gen-server ./src/lexicon ./lexicons/*",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc"
   },
@@ -21,6 +22,7 @@
   },
   "homepage": "https://github.com/AfternoonSky/bangers-labeler#readme",
   "devDependencies": {
+    "@atproto/lex-cli": "^0.6.2",
     "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.13.5"
   },
