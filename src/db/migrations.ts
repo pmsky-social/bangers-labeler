@@ -18,7 +18,42 @@ const migrations: Record<string, Migration> = {
   "001": {
     async up(db) {
       // TODO: fill out table creation
-      await db.schema.createTable("proposals");
+      await db.schema
+        .createTable("proposals")
+        .addColumn("rkey", "varchar", (col) => col.notNull())
+        .addColumn("uri", "varchar", (col) => col.notNull())
+        .addColumn("cid", "varchar", (col) => col.notNull())
+        .addColumn("createdAt", "datetime", (col) => col.notNull())
+        .addColumn("ingestedAt", "datetime", (col) => col.notNull())
+        .addColumn("exp", "datetime", (col) => col.notNull())
+        .addColumn("neg", "boolean", (col) => col.notNull())
+        .addColumn("sig", "blob", (col) => col.notNull())
+        .addColumn("src", "varchar", (col) => col.notNull())
+        .addColumn("typ", "varchar", (col) => col.notNull())
+        .addColumn("subject", "varchar", (col) => col.notNull())
+        .addColumn("val", "varchar", (col) => col.notNull())
+        .addColumn("ver", "integer", (col) => col.notNull())
+        .execute();
+
+      await db.schema
+        .createTable("votes")
+        .addColumn("rkey", "varchar", (col) => col.notNull())
+        .addColumn("uri", "varchar", (col) => col.notNull())
+        .addColumn("cid", "varchar", (col) => col.notNull())
+        .addColumn("createdAt", "datetime", (col) => col.notNull())
+        .addColumn("ingestedAt", "datetime", (col) => col.notNull())
+        .addColumn("sig", "blob", (col) => col.notNull())
+        .addColumn("src", "varchar", (col) => col.notNull())
+        .addColumn("subject", "varchar", (col) => col.notNull())
+        .addColumn("val", "varchar", (col) => col.notNull())
+        .execute();
+
+      await db.schema
+        .createTable("published_labels")
+        .addColumn("uri", "varchar", (col) => col.notNull())
+        .addColumn("timePublished", "datetime", (col) => col.notNull())
+        .addColumn("label", "varchar", (col) => col.notNull())
+        .execute();
     },
   },
 };
