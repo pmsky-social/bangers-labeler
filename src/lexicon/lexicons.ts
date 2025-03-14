@@ -2,15 +2,14 @@
  * GENERATED CODE - DO NOT MODIFY
  */
 import {
-  LexiconDoc,
+  type LexiconDoc,
   Lexicons,
   ValidationError,
-  ValidationResult,
+  type ValidationResult,
 } from '@atproto/lexicon'
-import { $Typed, is$typed, maybe$typed } from './util.js'
+import { type $Typed, is$typed, maybe$typed } from './util.js'
 
 export const schemaDict = {} as const satisfies Record<string, LexiconDoc>
-
 export const schemas = Object.values(schemaDict) satisfies LexiconDoc[]
 export const lexicons: Lexicons = new Lexicons(schemas)
 
