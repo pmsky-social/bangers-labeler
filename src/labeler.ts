@@ -5,20 +5,30 @@ import { LabelerServer } from "@skyware/labeler";
 import { Environment } from "./env";
 import * as Pino from "pino";
 import { type Database, createDb } from "./db/migrations";
+import { SOCIAL_PMSKY_PROPOSAL, SOCIAL_PMSKY_VOTE } from "./constants";
+import { VotesRepository } from "./db/repos/votesRepository";
+import { ProposalsRepository } from "./db/repos/proposalsRepository";
+import * as ProposalLexicon from "./lexicon/types/social/pmsky/proposal";
+import { Proposal } from "./db/types/proposal";
+import { Ingester } from "./ingester";
 
 export class Labeler {
   private env: Environment;
   private logger: Pino.Logger;
   private db: Database;
   private server: LabelerServer;
-  private jetstream: Jetstream;
+  private ingester: Ingester;
+  private votes: VotesRepository;
+  private proposals: ProposalsRepository;
 
   constructor() {
     this.env = Environment.load();
     this.logger = require("pino")();
     this.db = createDb(this.env.db_location);
     this.server = this.startServer();
-    this.jetstream = this.startJetstream();
+    this.ingester = new Ingester(this.env, this.db);
+    this.votes = new VotesRepository(this.db);
+    this.proposals = new ProposalsRepository(this.db);
   }
 
   startServer() {
@@ -36,24 +46,6 @@ export class Labeler {
     });
 
     return server;
-  }
-
-  startJetstream() {
-    const jetstream = new Jetstream({
-      wantedCollections: ["social.pmsky.proposal", "social.pmsky.vote"],
-      wantedDids: [this.env.platform_did],
-      endpoint: "wss://jetstream1.us-east.bsky.network/subscribe",
-    });
-
-    jetstream.on("error", (error) => {
-      this.logger.error("Jetstream error:", error);
-    });
-
-    // todo: on commits, save to db & trigger a check
-
-    jetstream.start();
-
-    return jetstream;
   }
 
   /// checks the DB votes against published labels to see if any need to be updated
