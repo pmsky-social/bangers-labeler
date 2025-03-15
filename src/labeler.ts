@@ -70,9 +70,9 @@ export class Labeler {
     }
   }
 
-  async publishLabel(req: CreateLabelData) {
+  async publishLabel(proposal: ) {
     // todo: might want to store score in publishedLabel table
-    this.logger.trace(req, "Publishing label");
+    this.logger.trace(proposal, "Publishing label");
     this.bangers.publishLabel(req);
     this.server.createLabel(req);
   }

@@ -1,13 +1,11 @@
-import { CreateLabelData } from "@skyware/labeler";
 import { Database } from "../migrations";
 import { ProposalType } from "../types/proposal";
-import { on } from "events";
+import { PublishedLabel } from "../types/publishedLabel";
 
 export class BangersRepository {
   constructor(private db: Database) {}
 
-  /// todo: update this to return shouldPublish: true/false, based on the previously published table
-  async getBangersToPublish() {
+  async getBangersToPublish(): Promise<PublishedLabel[]> {
     return await this.db
       .selectFrom("proposals")
       .where("proposals.typ", "=", ProposalType.POST_LABEL)
@@ -16,17 +14,20 @@ export class BangersRepository {
       .leftJoin("publishedLabels", "proposals.uri", "publishedLabels.uri")
       .groupBy("proposals.uri")
       .select((eb) => [
-        // todo: what else do we need to publish the label?
-        eb.ref("proposals.uri").as("uri"),
-        eb.ref("proposals.subject").as("subject"),
+        eb.ref("proposals.subject").as("uri"),
         eb.fn.sum(eb.ref("votes.val")).as("score"),
-        // todo: should be a boolean showing if it should be published or retracted
-        eb.exists(eb.ref("proposals.uri")).as("shouldPublish"),
+        eb
+          .cast<boolean>(
+            eb("publishedLabels.score", "=", eb.ref("score")),
+            "boolean"
+          )
+          .as("shouldBePublished"),
       ])
-      .execute();
+      .execute()
+      .then((rows) => rows.map(PublishedLabel.fromDbRow));
   }
 
-  async publishLabel(req: CreateLabelData) {
+  async publishLabel(req: PublishedLabel) {
     await this.db
       .insertInto("publishedLabels")
       .values(req)
