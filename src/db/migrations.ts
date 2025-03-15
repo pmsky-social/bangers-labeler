@@ -50,9 +50,14 @@ const migrations: Record<string, Migration> = {
 
       await db.schema
         .createTable("published_labels")
+        .addColumn("val", "varchar", (col) => col.notNull())
         .addColumn("uri", "varchar", (col) => col.notNull())
-        .addColumn("timePublished", "datetime", (col) => col.notNull())
-        .addColumn("label", "varchar", (col) => col.notNull())
+        .addColumn("cid", "varchar")
+        .addColumn("neg", "boolean")
+        .addColumn("src", "varchar")
+        .addColumn("cts", "datetime")
+        .addColumn("exp", "datetime")
+        .addPrimaryKeyConstraint("unique_label", ["val", "uri"])
         .execute();
     },
   },

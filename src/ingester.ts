@@ -11,6 +11,7 @@ import { Database } from "./db/migrations";
 import { ProposalsRepository } from "./db/repos/proposalsRepository";
 import { VotesRepository } from "./db/repos/votesRepository";
 import { Vote } from "./db/types/vote";
+import { Subscriber } from "./subscriber";
 
 export class Ingester {
   private logger: Logger;
@@ -20,7 +21,8 @@ export class Ingester {
 
   constructor(
     private env: Environment,
-    private db: Database
+    private db: Database,
+    private subscriber: Subscriber
   ) {
     this.logger = Pino();
     this.jetstream = this.startJetstream();
@@ -41,6 +43,7 @@ export class Ingester {
 
     jetstream.on("commit", (commit) => {
       this.logger.info("Jetstream commit:", commit);
+      this.subscriber.trigger();
     });
 
     jetstream.onCreate(SOCIAL_PMSKY_PROPOSAL, this.newProposal.bind(this));

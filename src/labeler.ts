@@ -1,7 +1,7 @@
 /// starts a labeler server, a jetstream consumer, and keeps track of proposals, votes, and published labels
 
 import { Jetstream } from "@skyware/jetstream";
-import { LabelerServer } from "@skyware/labeler";
+import { CreateLabelData, LabelerServer } from "@skyware/labeler";
 import { Environment } from "./env";
 import * as Pino from "pino";
 import { type Database, createDb } from "./db/migrations";
@@ -11,24 +11,30 @@ import { ProposalsRepository } from "./db/repos/proposalsRepository";
 import * as ProposalLexicon from "./lexicon/types/social/pmsky/proposal";
 import { Proposal } from "./db/types/proposal";
 import { Ingester } from "./ingester";
+import { BangersRepository } from "./db/repos/bangersRepository";
+import { Subscriber } from "./subscriber";
 
 export class Labeler {
   private env: Environment;
   private logger: Pino.Logger;
   private db: Database;
+  private subscriber: Subscriber;
   private server: LabelerServer;
   private ingester: Ingester;
   private votes: VotesRepository;
   private proposals: ProposalsRepository;
+  private bangers: BangersRepository;
 
   constructor() {
     this.env = Environment.load();
     this.logger = require("pino")();
     this.db = createDb(this.env.db_location);
     this.server = this.startServer();
-    this.ingester = new Ingester(this.env, this.db);
+    this.subscriber = new Subscriber(this.checkForBangers.bind(this));
+    this.ingester = new Ingester(this.env, this.db, this.subscriber);
     this.votes = new VotesRepository(this.db);
     this.proposals = new ProposalsRepository(this.db);
+    this.bangers = new BangersRepository(this.db);
   }
 
   startServer() {
@@ -49,5 +55,29 @@ export class Labeler {
   }
 
   /// checks the DB votes against published labels to see if any need to be updated
-  checkForBangers() {}
+  async checkForBangers() {
+    this.logger.trace("Checking for labels to publish");
+    const toPublish = await this.bangers.getBangersToPublish();
+    this.logger.trace(toPublish, "Bangers to publish");
+    for (const proposal of toPublish) {
+      const req: CreateLabelData = {
+        val: bangerLabelFromScore(proposal.score),
+        uri: proposal.subject,
+        neg: !proposal.shouldPublish,
+        cts: new Date().toISOString(),
+      };
+      this.publishLabel(req);
+    }
+  }
+
+  async publishLabel(req: CreateLabelData) {
+    // todo: might want to store score in publishedLabel table
+    this.logger.trace(req, "Publishing label");
+    this.bangers.publishLabel(req);
+    this.server.createLabel(req);
+  }
+}
+
+export function bangerLabelFromScore(score: string | number | bigint) {
+  return `Banger lvl${score}`;
 }
