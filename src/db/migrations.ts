@@ -52,6 +52,7 @@ const migrations: Record<string, Migration> = {
         .createTable("published_labels")
         .addColumn("val", "varchar", (col) => col.notNull())
         .addColumn("uri", "varchar", (col) => col.notNull())
+        .addColumn("score", "bigint", (col) => col.notNull())
         .addColumn("cid", "varchar")
         .addColumn("neg", "boolean")
         .addColumn("src", "varchar")

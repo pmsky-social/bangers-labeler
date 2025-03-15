@@ -1,18 +1,15 @@
 /// starts a labeler server, a jetstream consumer, and keeps track of proposals, votes, and published labels
 
-import { Jetstream } from "@skyware/jetstream";
-import { CreateLabelData, LabelerServer } from "@skyware/labeler";
+import { LabelerServer } from "@skyware/labeler";
 import { Environment } from "./env";
 import * as Pino from "pino";
 import { type Database, createDb } from "./db/migrations";
-import { SOCIAL_PMSKY_PROPOSAL, SOCIAL_PMSKY_VOTE } from "./constants";
 import { VotesRepository } from "./db/repos/votesRepository";
 import { ProposalsRepository } from "./db/repos/proposalsRepository";
-import * as ProposalLexicon from "./lexicon/types/social/pmsky/proposal";
-import { Proposal } from "./db/types/proposal";
 import { Ingester } from "./ingester";
 import { BangersRepository } from "./db/repos/bangersRepository";
 import { Subscriber } from "./subscriber";
+import { PublishedLabel } from "./db/types/publishedLabel";
 
 export class Labeler {
   private env: Environment;
@@ -57,24 +54,15 @@ export class Labeler {
   /// checks the DB votes against published labels to see if any need to be updated
   async checkForBangers() {
     this.logger.trace("Checking for labels to publish");
-    const toPublish = await this.bangers.getBangersToPublish();
-    this.logger.trace(toPublish, "Bangers to publish");
-    for (const proposal of toPublish) {
-      const req: CreateLabelData = {
-        val: bangerLabelFromScore(proposal.score),
-        uri: proposal.subject,
-        neg: !proposal.shouldPublish,
-        cts: new Date().toISOString(),
-      };
-      this.publishLabel(req);
-    }
+    await this.bangers
+      .getBangersToPublish()
+      .then((labels) => labels.map((label) => this.publishLabel(label)));
   }
 
-  async publishLabel(proposal: ) {
-    // todo: might want to store score in publishedLabel table
-    this.logger.trace(proposal, "Publishing label");
-    this.bangers.publishLabel(req);
-    this.server.createLabel(req);
+  async publishLabel(label: PublishedLabel) {
+    this.logger.trace(label, "Publishing label");
+    this.bangers.publishLabel(label);
+    this.server.createLabel(label.toCreateLabelData());
   }
 }
 
