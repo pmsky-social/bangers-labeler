@@ -1,6 +1,7 @@
 {
   "lexicons": [
     "social.pmsky.vote",
-    "social.pmsky.proposal"
+    "social.pmsky.proposal",
+    "com.atproto.label.defs"
   ]
 }

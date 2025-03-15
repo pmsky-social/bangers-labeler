@@ -4,7 +4,7 @@
   "description": "labels bangers as determined by pmsky",
   "main": "dist/index.ts",
   "scripts": {
-    "lexgen": "lex gen-server ./src/lexicon ./lexicons/*",
+    "lexgen": "lex gen-server ./src/lexicon ./lexicons/*.json",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc"
   },
