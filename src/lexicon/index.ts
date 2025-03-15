@@ -16,9 +16,29 @@ export function createServer(options?: XrpcOptions): Server {
 
 export class Server {
   xrpc: XrpcServer
+  social: SocialNS
 
   constructor(options?: XrpcOptions) {
     this.xrpc = createXrpcServer(schemas, options)
+    this.social = new SocialNS(this)
+  }
+}
+
+export class SocialNS {
+  _server: Server
+  pmsky: SocialPmskyNS
+
+  constructor(server: Server) {
+    this._server = server
+    this.pmsky = new SocialPmskyNS(server)
+  }
+}
+
+export class SocialPmskyNS {
+  _server: Server
+
+  constructor(server: Server) {
+    this._server = server
   }
 }
 
