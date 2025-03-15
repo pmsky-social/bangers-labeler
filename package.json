@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AfternoonSky/bangers-labeler.git"
+    "url": "git+https://github.com/pmsky-social/bangers-labeler.git"
   },
   "keywords": [
     "atproto-labeler"
@@ -18,9 +18,9 @@
   "author": "drewmca.dev",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/AfternoonSky/bangers-labeler/issues"
+    "url": "https://github.com/pmsky-social/bangers-labeler/issues"
   },
-  "homepage": "https://github.com/AfternoonSky/bangers-labeler#readme",
+  "homepage": "https://github.com/pmsky-social/bangers-labeler#readme",
   "devDependencies": {
     "@atproto/lex-cli": "^0.7.0",
     "@types/better-sqlite3": "^7.6.12",
