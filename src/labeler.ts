@@ -2,7 +2,7 @@
 
 import { LabelerServer } from "@skyware/labeler";
 import { Environment } from "./env";
-import * as Pino from "pino";
+import Pino, { Logger } from "pino";
 import { type Database, createDb } from "./db/migrations";
 import { VotesRepository } from "./db/repos/votesRepository";
 import { ProposalsRepository } from "./db/repos/proposalsRepository";
@@ -13,7 +13,7 @@ import { PublishedLabel } from "./db/types/publishedLabel";
 
 export class Labeler {
   private env: Environment;
-  private logger: Pino.Logger;
+  private logger: Logger;
   private db: Database;
   private subscriber: Subscriber;
   private server: LabelerServer;
@@ -24,7 +24,7 @@ export class Labeler {
 
   constructor() {
     this.env = Environment.load();
-    this.logger = require("pino")();
+    this.logger = Pino();
     this.db = createDb(this.env.db_location);
     this.server = this.startServer();
     this.subscriber = new Subscriber(this.checkForBangers.bind(this));
