@@ -3,6 +3,7 @@ import {
   CommitUpdateEvent,
   Jetstream,
 } from "@skyware/jetstream";
+import ws from "ws";
 import Pino, { Logger } from "pino";
 import { SOCIAL_PMSKY_PROPOSAL, SOCIAL_PMSKY_VOTE } from "./constants";
 import { Environment } from "./env";
@@ -36,6 +37,7 @@ export class Ingester {
       wantedCollections: [SOCIAL_PMSKY_PROPOSAL, SOCIAL_PMSKY_VOTE],
       wantedDids: [this.env.platform_did],
       endpoint: "wss://jetstream1.us-east.bsky.network/subscribe",
+      ws,
     });
 
     jetstream.on("error", (error) => {
