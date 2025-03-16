@@ -2,6 +2,7 @@
 
 export class Subscriber {
   constructor(private fn: Function) {}
+
   // triggers a check
   async trigger() {
     await this.fn();

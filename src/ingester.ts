@@ -41,15 +41,6 @@ export class Ingester {
       this.logger.error("Jetstream error:", error);
     });
 
-    jetstream.on("commit", (commit) => {
-      // this.logger.trace(commit, "Jetstream commit:");
-      // try {
-      //   this.subscriber.trigger();
-      // } catch (err) {
-      //   this.logger.error(err, "error triggering subscriber");
-      // }
-    });
-
     jetstream.onCreate(
       SOCIAL_PMSKY_PROPOSAL,
       async (evt) => await this.newProposal(evt)
