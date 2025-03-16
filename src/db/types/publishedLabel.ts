@@ -1,11 +1,11 @@
 import { CreateLabelData } from "@skyware/labeler";
 import { bangerLabelFromScore } from "../../labeler";
 
-export class PublishedLabel implements CreateLabelData {
+export class PublishedLabel {
   val!: string;
   uri!: string;
   cid?: string | undefined;
-  neg?: boolean | undefined;
+  neg?: number;
   src?: string | undefined;
   cts?: string | undefined;
   exp?: string | undefined;
@@ -29,7 +29,7 @@ export class PublishedLabel implements CreateLabelData {
     } & Partial<PublishedLabel>
   ): PublishedLabel {
     return new PublishedLabel({
-      neg: !row.shouldBePublished,
+      neg: row.shouldBePublished ? 0 : 1,
       val: bangerLabelFromScore(row.score),
       uri: row.uri,
       score: row.score,
@@ -42,6 +42,7 @@ export class PublishedLabel implements CreateLabelData {
 
   static fromCreateLabelData(createLabelData: CreateLabelData, score: number) {
     return {
+      neg: createLabelData.neg ? 1 : 0,
       ...createLabelData,
       score,
     };
@@ -52,7 +53,7 @@ export class PublishedLabel implements CreateLabelData {
       val: this.val,
       uri: this.uri,
       cid: this.cid,
-      neg: this.neg,
+      neg: this.neg === 1,
       src: this.src,
       cts: this.cts,
       exp: this.exp,

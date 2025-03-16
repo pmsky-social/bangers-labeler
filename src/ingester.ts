@@ -24,10 +24,10 @@ export class Ingester {
     private db: Database,
     private subscriber: Subscriber
   ) {
-    this.logger = Pino();
+    this.logger = Pino({ level: env.logLevel });
     this.jetstream = this.startJetstream();
-    this.proposals = new ProposalsRepository(this.db);
-    this.votes = new VotesRepository(this.db);
+    this.proposals = new ProposalsRepository(this.db, this.env);
+    this.votes = new VotesRepository(this.db, this.env);
   }
 
   startJetstream() {
@@ -42,22 +42,32 @@ export class Ingester {
     });
 
     jetstream.on("commit", (commit) => {
-      this.logger.info("Jetstream commit:", commit);
-      this.subscriber.trigger();
+      // this.logger.trace(commit, "Jetstream commit:");
+      // try {
+      //   this.subscriber.trigger();
+      // } catch (err) {
+      //   this.logger.error(err, "error triggering subscriber");
+      // }
     });
 
-    jetstream.onCreate(SOCIAL_PMSKY_PROPOSAL, this.newProposal.bind(this));
+    jetstream.onCreate(
+      SOCIAL_PMSKY_PROPOSAL,
+      async (evt) => await this.newProposal(evt)
+    );
     jetstream.onUpdate(SOCIAL_PMSKY_PROPOSAL, this.newProposal.bind(this));
-    jetstream.onCreate(SOCIAL_PMSKY_VOTE, this.newVote.bind(this));
+    jetstream.onCreate(
+      SOCIAL_PMSKY_VOTE,
+      async (evt) => await this.newVote(evt)
+    );
     jetstream.onUpdate(SOCIAL_PMSKY_VOTE, this.newVote.bind(this));
 
     jetstream.onDelete(SOCIAL_PMSKY_PROPOSAL, async (evt) => {
       this.logger.trace(evt, "deleting label");
-      this.proposals.delete(evt.commit.rkey.toString());
+      await this.proposals.delete(evt.commit.rkey.toString());
     });
     jetstream.onDelete(SOCIAL_PMSKY_VOTE, async (evt) => {
       this.logger.trace(evt, "deleting vote");
-      this.votes.delete(evt.commit.rkey.toString());
+      await this.votes.delete(evt.commit.rkey.toString());
     });
 
     jetstream.start();
@@ -73,9 +83,10 @@ export class Ingester {
     this.logger.trace(evt, "new proposal");
     try {
       const proposal = Proposal.tryFromRecord(evt.commit.record);
-      this.proposals.save(proposal);
+      await this.proposals.save(proposal);
     } catch (ex) {
-      this.logger.error(evt, "invalid proposal record from jetstream", ex);
+      this.logger.error({ evt, ex }, "invalid proposal record from jetstream");
+      throw ex;
     }
   }
 
@@ -87,9 +98,11 @@ export class Ingester {
     this.logger.trace(evt, "new vote");
     try {
       const vote = Vote.tryFromRecord(evt.commit.record);
-      this.votes.save(vote);
+      await this.votes.save(vote);
+      await this.subscriber.trigger();
     } catch (ex) {
-      this.logger.error(evt, "invalid vote record from jetstream", ex);
+      this.logger.error({ evt, ex }, "invalid vote record from jetstream");
+      throw ex;
     }
   }
 }

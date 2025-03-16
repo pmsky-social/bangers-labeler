@@ -1,9 +1,14 @@
+import Pino, { Logger } from "pino";
+import dotenv from "dotenv";
+
 export class Environment {
+  logger: Logger;
+
   /// port the labeler server will run on
-  port!: number;
+  port: number = 21723;
 
   /// location of the sqlite db, either a filepath or :memory:
-  db_location!: string;
+  db_location: string = ":memory:";
 
   /// did of the platform account that publishes pmsky records to listen for
   platform_did!: string;
@@ -14,17 +19,21 @@ export class Environment {
   /// signing key of the labeler account
   signingKey!: string;
 
-  public static load(): Environment {
-    return {
-      port: Environment.loadNum("PORT", 14831),
-      db_location: Environment.loadStr("DB_LOCATION", ":memory:"),
-      labeler_did: Environment.loadStr("LABELER_DID"),
-      platform_did: Environment.loadStr("PLATFORM_DID"),
-      signingKey: Environment.loadStr("SIGNING_KEY"),
-    };
+  logLevel: string;
+
+  constructor() {
+    dotenv.config();
+    this.logLevel = this.loadStr("LOG_LEVEL", "info");
+    this.logger = Pino({ level: this.logLevel });
+
+    this.port = this.loadNum("PORT", 14831);
+    this.db_location = this.loadStr("DB_LOCATION", ":memory:");
+    this.labeler_did = this.loadStr("LABELER_DID");
+    this.platform_did = this.loadStr("PLATFORM_DID");
+    this.signingKey = this.loadStr("SIGNING_KEY");
   }
 
-  private static loadNum(key: string, defaultValue?: number): number {
+  private loadNum(key: string, defaultValue?: number): number {
     const value = process.env[key];
     if (!value) {
       if (defaultValue) return defaultValue;
@@ -34,7 +43,7 @@ export class Environment {
       return parseInt(value);
     } catch (e) {
       if (defaultValue) {
-        console.warn(
+        this.logger.warn(
           `Bad environment variable: ${key}, defaulting to ${defaultValue}`
         );
         return defaultValue;
@@ -43,7 +52,7 @@ export class Environment {
     }
   }
 
-  private static loadStr(key: string, defaultValue?: string): string {
+  private loadStr(key: string, defaultValue?: string): string {
     const value = process.env[key];
     if (!value) {
       if (defaultValue) return defaultValue;

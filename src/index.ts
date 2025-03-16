@@ -1,3 +1,5 @@
+import { Environment } from "./env";
 import { Labeler } from "./labeler";
 
-new Labeler();
+const env = new Environment();
+new Labeler(env);

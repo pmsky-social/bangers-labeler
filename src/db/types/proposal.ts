@@ -1,8 +1,10 @@
+import Pino from "pino";
 import { ResolveLexicon } from "@skyware/jetstream";
 
 import * as ProposalLexicon from "../../lexicon/types/social/pmsky/proposal";
 import { BadRecordError, BadRecordErrorKind } from "../../errors";
 import { SOCIAL_PMSKY_PROPOSAL } from "../../constants";
+import { Record } from "../../lexicon/types/social/pmsky/proposal";
 
 export enum ProposalType {
   POST_LABEL = "post_label",
@@ -17,17 +19,17 @@ export const ALL_PROPOSAL_TYPES = [
 export class Proposal {
   public rkey!: string;
   public uri!: string; // at://${src}/social.pmsky.proposal/${rkey}
-  public cid!: string; // record CID
-  public createdAt!: Date; // creation time
-  public ingestedAt!: Date; // ingested at
-  public exp!: Date;
-  public neg!: boolean;
-  public sig!: Uint8Array;
+  public cid?: string; // record CID
+  public createdAt!: string; // creation time
+  public ingestedAt!: string; // ingested at
+  public exp?: Date;
+  public neg?: number;
+  public sig?: string;
   public src!: string; // DID of the actor who created this proposal, probably pmsky.social
   public typ!: ProposalType;
   public subject!: string; // subject of proposal
   public val!: string; // value of proposal
-  public ver!: number;
+  public ver?: number;
 
   static tryFromRecord(record: ResolveLexicon<"social.pmsky.proposal">) {
     if (!ProposalLexicon.isRecord(record)) {
@@ -41,9 +43,29 @@ export class Proposal {
       throw new BadRecordError(
         BadRecordErrorKind.INVALID,
         SOCIAL_PMSKY_PROPOSAL,
-        validationResults
+        validationResults.error.message
       );
     }
-    return record as unknown as Proposal;
+    const logger = Pino({ level: "trace" });
+    logger.trace(record, "casting record to Proposal");
+    return this.fromRecord(record as Record);
+  }
+
+  static fromRecord(record: Record) {
+    return {
+      rkey: record.rkey,
+      uri: `at://${record.src}/social.pmsky.proposal/${record.rkey}`,
+      cid: record.cid,
+      createdAt: record.cts,
+      ingestedAt: new Date().toISOString(),
+      exp: record.exp,
+      neg: record.neg ? 1 : 0,
+      sig: record.sig?.toString(),
+      src: record.src,
+      typ: record.typ,
+      subject: record.uri,
+      val: record.val,
+      ver: record.ver,
+    } as Proposal;
   }
 }

@@ -2,7 +2,7 @@ export class BadRecordError extends Error {
   constructor(
     public kind: BadRecordErrorKind,
     public lexicon: string,
-    public validationResults?: any
+    public validationResultErrorMsg?: string
   ) {
     const message = kind.valueOf();
     super(message);
