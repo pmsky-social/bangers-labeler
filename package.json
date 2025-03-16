@@ -6,7 +6,9 @@
   "scripts": {
     "lexgen": "lex gen-server ./src/lexicon ./lexicons/*.json",
     "build": "tsc",
-    "test": "jest"
+    "test": "jest",
+    "prestart": "tsc",
+    "start": "node dist/src/index.js"
   },
   "repository": {
     "type": "git",

@@ -49,7 +49,7 @@ describe("Integration Test: Proposal and Votes", () => {
   });
 
   beforeEach(async () => {
-    labeler = new Labeler(env);
+    labeler = await Labeler.create(env);
     // Run migrations on the in-memory database
     await migrateToLatest((labeler as any).db);
     mockServer = (labeler as any)["server"];

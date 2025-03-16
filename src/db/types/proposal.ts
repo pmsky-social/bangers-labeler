@@ -1,5 +1,5 @@
 import Pino from "pino";
-import { ResolveLexicon } from "@skyware/jetstream";
+import { CommitCreate, CommitUpdate } from "@skyware/jetstream";
 
 import * as ProposalLexicon from "../../lexicon/types/social/pmsky/proposal";
 import { BadRecordError, BadRecordErrorKind } from "../../errors";
@@ -31,14 +31,18 @@ export class Proposal {
   public val!: string; // value of proposal
   public ver?: number;
 
-  static tryFromRecord(record: ResolveLexicon<"social.pmsky.proposal">) {
-    if (!ProposalLexicon.isRecord(record)) {
+  static tryFromRecord(
+    commit:
+      | CommitCreate<"social.pmsky.proposal">
+      | CommitUpdate<"social.pmsky.proposal">
+  ) {
+    if (!ProposalLexicon.isRecord(commit.record)) {
       throw new BadRecordError(
         BadRecordErrorKind.NOT_A_RECORD,
         SOCIAL_PMSKY_PROPOSAL
       );
     }
-    const validationResults = ProposalLexicon.validateRecord(record);
+    const validationResults = ProposalLexicon.validateRecord(commit.record);
     if (!validationResults.success) {
       throw new BadRecordError(
         BadRecordErrorKind.INVALID,
@@ -47,14 +51,19 @@ export class Proposal {
       );
     }
     const logger = Pino({ level: "trace" });
-    logger.trace(record, "casting record to Proposal");
-    return this.fromRecord(record as Record);
+    logger.trace(commit, "casting record to Proposal");
+    return this.fromRecord(commit);
   }
 
-  static fromRecord(record: Record) {
+  static fromRecord(
+    commit:
+      | CommitCreate<"social.pmsky.proposal">
+      | CommitUpdate<"social.pmsky.proposal">
+  ) {
+    const record = commit.record as Record;
     return {
-      rkey: record.rkey,
-      uri: `at://${record.src}/social.pmsky.proposal/${record.rkey}`,
+      rkey: commit.rkey,
+      uri: `at://${record.src}/social.pmsky.proposal/${commit.rkey}`,
       cid: record.cid,
       createdAt: record.cts,
       ingestedAt: new Date().toISOString(),

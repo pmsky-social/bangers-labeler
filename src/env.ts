@@ -23,8 +23,12 @@ export class Environment {
 
   constructor() {
     dotenv.config();
-    this.logLevel = this.loadStr("LOG_LEVEL", "info");
+    this.logLevel = this.loadStr("LOG_LEVEL", "trace");
     this.logger = Pino({ level: this.logLevel });
+    this.logger.info(
+      this.logLevel,
+      "Environment loaded, logger initialized with level"
+    );
 
     this.port = this.loadNum("PORT", 14831);
     this.db_location = this.loadStr("DB_LOCATION", ":memory:");

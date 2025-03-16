@@ -25,12 +25,13 @@ export class Ingester {
     private subscriber: Subscriber
   ) {
     this.logger = Pino({ level: env.logLevel });
-    this.jetstream = this.startJetstream();
     this.proposals = new ProposalsRepository(this.db, this.env);
     this.votes = new VotesRepository(this.db, this.env);
+    this.jetstream = this.startJetstream();
   }
 
   startJetstream() {
+    this.logger.info("Starting Jetstream");
     const jetstream = new Jetstream({
       wantedCollections: [SOCIAL_PMSKY_PROPOSAL, SOCIAL_PMSKY_VOTE],
       wantedDids: [this.env.platform_did],
@@ -63,6 +64,8 @@ export class Ingester {
 
     jetstream.start();
 
+    this.logger.trace("Jetstream started");
+
     return jetstream;
   }
 
@@ -73,11 +76,10 @@ export class Ingester {
   ) {
     this.logger.trace(evt, "new proposal");
     try {
-      const proposal = Proposal.tryFromRecord(evt.commit.record);
+      const proposal = Proposal.tryFromRecord(evt.commit);
       await this.proposals.save(proposal);
     } catch (ex) {
       this.logger.error({ evt, ex }, "invalid proposal record from jetstream");
-      throw ex;
     }
   }
 
@@ -88,12 +90,11 @@ export class Ingester {
   ) {
     this.logger.trace(evt, "new vote");
     try {
-      const vote = Vote.tryFromRecord(evt.commit.record);
+      const vote = Vote.tryFromRecord(evt.commit);
       await this.votes.save(vote);
       await this.subscriber.trigger();
     } catch (ex) {
       this.logger.error({ evt, ex }, "invalid vote record from jetstream");
-      throw ex;
     }
   }
 }

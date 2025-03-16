@@ -17,7 +17,6 @@ const migrationProvider: MigrationProvider = {
 const migrations: Record<string, Migration> = {
   "001": {
     async up(db) {
-      // TODO: fill out table creation
       await db.schema
         .createTable("proposals")
         .addColumn("rkey", "varchar", (col) => col.notNull())
@@ -40,10 +39,10 @@ const migrations: Record<string, Migration> = {
         .createTable("votes")
         .addColumn("rkey", "varchar", (col) => col.notNull())
         .addColumn("uri", "varchar", (col) => col.notNull())
-        .addColumn("cid", "varchar", (col) => col.notNull())
+        .addColumn("cid", "varchar")
         .addColumn("createdAt", "datetime", (col) => col.notNull())
         .addColumn("ingestedAt", "datetime", (col) => col.notNull())
-        .addColumn("sig", "blob", (col) => col.notNull())
+        .addColumn("sig", "blob")
         .addColumn("src", "varchar", (col) => col.notNull())
         .addColumn("subject", "varchar", (col) => col.notNull())
         .addColumn("val", "integer", (col) => col.notNull())

@@ -3,7 +3,7 @@
 import { LabelerServer } from "@skyware/labeler";
 import { Environment } from "./env";
 import Pino, { Logger } from "pino";
-import { type Database, createDb } from "./db/migrations";
+import { type Database, createDb, migrateToLatest } from "./db/migrations";
 import { VotesRepository } from "./db/repos/votesRepository";
 import { ProposalsRepository } from "./db/repos/proposalsRepository";
 import { Ingester } from "./ingester";
@@ -12,8 +12,6 @@ import { Subscriber } from "./subscriber";
 import { PublishedLabel } from "./db/types/publishedLabel";
 
 export class Labeler {
-  private logger: Logger;
-  private db: Database;
   private subscriber: Subscriber;
   private server: LabelerServer;
   private ingester: Ingester;
@@ -21,15 +19,26 @@ export class Labeler {
   private proposals: ProposalsRepository;
   private bangers: BangersRepository;
 
-  constructor(private env: Environment) {
-    this.logger = Pino({ level: this.env.logLevel });
-    this.db = createDb(this.env.db_location);
+  constructor(
+    private env: Environment,
+    private db: Database,
+    private logger: Logger
+  ) {
+    this.db = db;
     this.server = this.startServer();
+    this.votes = new VotesRepository(db, env);
+    this.proposals = new ProposalsRepository(db, env);
+    this.bangers = new BangersRepository(db, env);
     this.subscriber = new Subscriber(this.checkForBangers.bind(this));
-    this.ingester = new Ingester(this.env, this.db, this.subscriber);
-    this.votes = new VotesRepository(this.db, this.env);
-    this.proposals = new ProposalsRepository(this.db, this.env);
-    this.bangers = new BangersRepository(this.db, this.env);
+    this.ingester = new Ingester(env, db, this.subscriber);
+    this.logger.info("Labeler initialized");
+  }
+
+  static async create(env: Environment) {
+    const logger = Pino({ level: env.logLevel });
+    const db = createDb(env.db_location);
+    await migrateToLatest(db);
+    return new Labeler(env, db, logger);
   }
 
   startServer() {
