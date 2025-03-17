@@ -13,3 +13,12 @@ export enum BadRecordErrorKind {
   NOT_A_RECORD = "not a record",
   INVALID = "did not pass validation",
 }
+
+export class BadScoreError extends Error {
+  constructor(
+    public uri: string,
+    public score: any
+  ) {
+    super(`Score was NaN for ${uri}: ${score}`);
+  }
+}

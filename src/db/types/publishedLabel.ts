@@ -1,5 +1,6 @@
 import { CreateLabelData } from "@skyware/labeler";
 import { bangerLabelFromScore } from "../../labeler";
+import { BadScoreError } from "../../errors";
 
 export class PublishedLabel {
   val!: string;
@@ -25,19 +26,48 @@ export class PublishedLabel {
     row: {
       uri: string;
       score: string | number | bigint;
-      shouldBePublished: boolean;
+      publishedScore: string | number | bigint | null;
     } & Partial<PublishedLabel>
-  ): PublishedLabel {
-    return new PublishedLabel({
-      neg: row.shouldBePublished ? 0 : 1,
-      val: bangerLabelFromScore(row.score),
-      uri: row.uri,
-      score: row.score,
-      cid: row.cid,
-      src: row.src,
-      cts: row.cts,
-      exp: row.exp,
-    });
+  ): PublishedLabel[] {
+    if (isNaN(Number(row.score))) throw new BadScoreError(row.uri, row.score);
+    if (!row.publishedScore && Number(row.score) > 0)
+      return [
+        new PublishedLabel({
+          neg: 0,
+          val: bangerLabelFromScore(row.score),
+          uri: row.uri,
+          score: row.score,
+          cid: row.cid,
+          src: row.src,
+          cts: row.cts,
+          exp: row.exp,
+        }),
+      ];
+    if (row.publishedScore && row.score != row.publishedScore)
+      return [
+        new PublishedLabel({
+          neg: 0,
+          val: bangerLabelFromScore(row.score),
+          uri: row.uri,
+          score: row.score,
+          cid: row.cid,
+          src: row.src,
+          cts: row.cts,
+          exp: row.exp,
+        }),
+        new PublishedLabel({
+          neg: 1,
+          val: bangerLabelFromScore(row.publishedScore!),
+          uri: row.uri,
+          score: row.publishedScore!,
+          cid: row.cid,
+          src: row.src,
+          cts: row.cts,
+          exp: row.exp,
+        }),
+      ];
+
+    return [];
   }
 
   static fromCreateLabelData(createLabelData: CreateLabelData, score: number) {

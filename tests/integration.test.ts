@@ -35,6 +35,7 @@ jest.mock("@skyware/labeler", () => {
 import { Labeler } from "../src/labeler";
 import { migrateToLatest } from "../src/db/migrations";
 import { Environment } from "../src/env";
+import { CreateLabelData } from "@skyware/labeler";
 
 describe("Integration Test: Proposal and Votes", () => {
   let labeler: Labeler;
@@ -146,15 +147,20 @@ describe("Integration Test: Proposal and Votes", () => {
     // TODO: only thing left might be a timing issue, are we awaiting everything correctly?
 
     // We expect createLabel to be called once per vote event (3 times total)
-    expect(mockServer.createLabel).toHaveBeenCalledTimes(3);
-    const calls = mockServer.createLabel.mock.calls;
+    expect(mockServer.createLabel).toHaveBeenCalledTimes(5);
+    const expectedCalls: CreateLabelData[] = [
+      { val: "Banger lvl1", uri: "at://post1", neg: false },
+      { val: "Banger lvl1", uri: "at://post1", neg: true },
+      { val: "Banger lvl2", uri: "at://post1", neg: false },
+      { val: "Banger lvl2", uri: "at://post1", neg: true },
+      { val: "Banger lvl1", uri: "at://post1", neg: false },
+    ];
 
-    // Expected cumulative scores:
-    // After first vote: score = 1 -> label should be 'Banger lvl1'
-    // After second vote: score = 2 -> label should be 'Banger lvl2'
-    // After third vote: score = 1 -> label should be 'Banger lvl1'
-    expect(calls[0][0].val).toBe("Banger lvl1");
-    expect(calls[1][0].val).toBe("Banger lvl2");
-    expect(calls[2][0].val).toBe("Banger lvl1");
+    // Expected calls:
+    for (let expected of expectedCalls) {
+      expect(mockServer.createLabel).toHaveBeenCalledWith({
+        ...expected,
+      });
+    }
   });
 });

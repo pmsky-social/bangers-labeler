@@ -10,6 +10,7 @@ import { Ingester } from "./ingester";
 import { BangersRepository } from "./db/repos/bangersRepository";
 import { Subscriber } from "./subscriber";
 import { PublishedLabel } from "./db/types/publishedLabel";
+import { LabelToPublish } from "./db/types/labelToPublish";
 
 export class Labeler {
   private subscriber: Subscriber;
@@ -65,10 +66,25 @@ export class Labeler {
     for (const label of labels) await this.publishLabel(label);
   }
 
-  async publishLabel(label: PublishedLabel) {
+  async publishLabel(label: LabelToPublish) {
     this.logger.trace(label, "Publishing label");
-    await this.bangers.publishLabel(label);
-    await this.server.createLabel(label.toCreateLabelData());
+    let toPublish = label.toPublishedLabel();
+    if (label.publishedScore === null && label.score > 0) {
+      this.logger.trace(label, "no published label yet, publishing.");
+      await this.bangers.publishLabel(toPublish);
+      await this.server.createLabel(toPublish.toCreateLabelData());
+    } else if (
+      label.publishedScore !== null &&
+      label.publishedScore !== label.score
+    ) {
+      await this.bangers.publishLabel(toPublish);
+      await this.server.createLabel(toPublish.toCreateLabelData());
+      toPublish.neg = 1;
+      toPublish.val = bangerLabelFromScore(label.publishedScore);
+      this.logger.trace(toPublish, "unpublishing previous label.");
+      await this.bangers.publishLabel(toPublish);
+      await this.server.createLabel(toPublish.toCreateLabelData());
+    }
   }
 }
 
