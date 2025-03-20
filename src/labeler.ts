@@ -79,15 +79,16 @@ export class Labeler {
     ) {
       await this.bangers.publishLabel(toPublish);
       await this.server.createLabel(toPublish.toCreateLabelData());
-      toPublish.neg = 1;
-      toPublish.val = bangerLabelFromScore(label.publishedScore);
-      this.logger.trace(toPublish, "unpublishing previous label.");
-      await this.bangers.publishLabel(toPublish);
-      await this.server.createLabel(toPublish.toCreateLabelData());
+
+      let unpublish = label.toPublishedLabel();
+      unpublish.neg = 1;
+      unpublish.val = bangerLabelFromScore(label.publishedScore);
+      this.logger.trace(unpublish, "unpublishing previous label.");
+      await this.bangers.publishLabel(unpublish);
+      await this.server.createLabel(unpublish.toCreateLabelData());
     }
   }
 }
-
 export function bangerLabelFromScore(score: string | number | bigint) {
   return `Banger lvl${score}`;
 }
