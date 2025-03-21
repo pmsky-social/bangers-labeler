@@ -144,23 +144,33 @@ describe("Integration Test: Proposal and Votes", () => {
       }
     }
 
-    // TODO: only thing left might be a timing issue, are we awaiting everything correctly?
-
-    // We expect createLabel to be called once per vote event (3 times total)
+    // We expect createLabel to be called 5 times
     expect(mockServer.createLabel).toHaveBeenCalledTimes(5);
-    const expectedCalls: CreateLabelData[] = [
-      { val: "Banger lvl1", uri: "at://post1", neg: false },
-      { val: "Banger lvl1", uri: "at://post1", neg: true },
-      { val: "Banger lvl2", uri: "at://post1", neg: false },
-      { val: "Banger lvl2", uri: "at://post1", neg: true },
-      { val: "Banger lvl1", uri: "at://post1", neg: false },
-    ];
 
-    // Expected calls:
-    for (let expected of expectedCalls) {
-      expect(mockServer.createLabel).toHaveBeenCalledWith({
-        ...expected,
-      });
-    }
+    expect(mockServer.createLabel.mock.calls[0][0]).toEqual({
+      val: "Banger lvl1",
+      uri: "at://post1",
+      neg: false,
+    });
+    expect(mockServer.createLabel.mock.calls[1][0]).toEqual({
+      val: "Banger lvl2",
+      uri: "at://post1",
+      neg: false,
+    });
+    expect(mockServer.createLabel.mock.calls[2][0]).toEqual({
+      val: "Banger lvl1",
+      uri: "at://post1",
+      neg: true,
+    });
+    expect(mockServer.createLabel.mock.calls[3][0]).toEqual({
+      val: "Banger lvl1",
+      uri: "at://post1",
+      neg: false,
+    });
+    expect(mockServer.createLabel.mock.calls[4][0]).toEqual({
+      val: "Banger lvl2",
+      uri: "at://post1",
+      neg: true,
+    });
   });
 });

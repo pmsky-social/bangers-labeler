@@ -33,6 +33,7 @@ export class Labeler {
     this.subscriber = new Subscriber(this.checkForBangers.bind(this));
     this.ingester = new Ingester(env, db, this.subscriber);
     this.logger.info("Labeler initialized");
+    this.logger.debug(env.labeler_did, "Labeler Acct Did");
   }
 
   static async create(env: Environment) {
